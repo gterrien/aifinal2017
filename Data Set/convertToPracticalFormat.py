@@ -1,3 +1,6 @@
+# The data is in a format with multiple-value discrete domains in the attributes. We expand this so that all attributes
+# are either 0 or 1 so that we can use all of the information as an input for the neural network easily.
+
 import csv
 with open('agaricus-lepiota.data.txt', 'rU') as csvfile:
         reader = csv.reader(csvfile)
