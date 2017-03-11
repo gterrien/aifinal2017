@@ -3,13 +3,16 @@ import math
 import csv
 import random
 
+TRAINING_FILE_NAME = "Data Set/trainingData.csv"
+VERIFICATION_FILE_NAME = "Data Set/verificationData.csv"
+
 def calculate_sigmoid_output(weights, features):
     sumScore = np.dot(weights, features)
     return float(1) / (1 + math.e**sumScore)
 
 
-def getTrainingExamplesFromFile():
-    with open('Data Set/expandedData.csv', 'rU') as csvfile:
+def getExamplesFromFile(fileName):
+    with open(fileName, 'rU') as csvfile:
         trainingExamples = []
         reader = csv.reader(csvfile)
         for row in reader:
@@ -49,6 +52,10 @@ def backpropagation(trainingExamples, alpha, n_hidden):
         for i in range(numInputs):
             newWeight.append((random.random()-0.5)/10)
         hidden_weights.append(newWeight)
+
+    # stochastic gradient descent
+    minimumAlpha = 0.0001
+    alphaDecrementInterval = (alpha - minimumAlpha) / len(trainingExamples)
     for trainingExample in trainingExamples:
         features = trainingExample[0]
         hiddenOutputs, outputs = forwardPropagate(hidden_weights, output_weights, features)
@@ -88,6 +95,7 @@ def backpropagation(trainingExamples, alpha, n_hidden):
                 delta = alpha * hiddenErrors[j] * features[i]
                 hidden_weights[j][i] += delta
 
+        alpha -= alphaDecrementInterval
 
     return hidden_weights, output_weights
 
@@ -95,13 +103,15 @@ def backpropagation(trainingExamples, alpha, n_hidden):
 
 
 def main():
-    trainingExamples = getTrainingExamplesFromFile()
-    hidden_weights, output_weights = backpropagation(trainingExamples[:8000], 0.15, 10)
+    trainingExamples = getExamplesFromFile(TRAINING_FILE_NAME)
+    hidden_weights, output_weights = backpropagation(trainingExamples, 0.02, 30)
     numEdible = 0
     numPoisonous = 0
     totalEdibleScore = 0
     totalPoisionousScore = 0
-    for example in trainingExamples[8005:8100]:
+
+    verificationExamples = getExamplesFromFile(VERIFICATION_FILE_NAME)
+    for example in verificationExamples:
         print(example[1])
         hiddenO, output = forwardPropagate(hidden_weights, output_weights, example[0])
         score = output[0]-output[1]
