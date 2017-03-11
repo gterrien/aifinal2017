@@ -1,0 +1,5 @@
+- Change output node to a perceptron
+- Experiment with parameters to find optimal value
+- Test
+- Clean up code
+- Write report
