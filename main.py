@@ -29,6 +29,14 @@ def forwardPropagate(hiddenWeights, outputWeights, features):
 
 
 def backpropagation(trainingExamples, alpha, n_hidden):
+    '''
+    Backpropagation algorithm using stochastic gradient descent.
+
+    :param trainingExamples:
+    :param alpha:
+    :param n_hidden:
+    :return:
+    '''
     # initialize weights for each sigmoid randomly with values between -0.05 and 0.05
     output_weights = [[],[]]
     for output_weight in output_weights:
@@ -88,12 +96,12 @@ def backpropagation(trainingExamples, alpha, n_hidden):
 
 def main():
     trainingExamples = getTrainingExamplesFromFile()
-    hidden_weights, output_weights = backpropagation(trainingExamples[:5000], 0.08, 10)
+    hidden_weights, output_weights = backpropagation(trainingExamples[:8000], 0.15, 10)
     numEdible = 0
     numPoisonous = 0
     totalEdibleScore = 0
     totalPoisionousScore = 0
-    for example in trainingExamples[5005:5100]:
+    for example in trainingExamples[8005:8100]:
         print(example[1])
         hiddenO, output = forwardPropagate(hidden_weights, output_weights, example[0])
         score = output[0]-output[1]
