@@ -4,11 +4,9 @@ import csv
 import random
 import operator
 
-TRAINING_FILE_NAME = "Data Set/trainingDataGeneric.csv"
-VERIFICATION_FILE_NAME = "Data Set/verificationDataGeneric.csv"
-TEST_FILE_NAME = "Data Set/testDataGeneric.csv"
-ALPHA = .05
-N_HIDDEN = 14
+TRAINING_FILE_NAME = "Data Set/trainingData.csv"
+VERIFICATION_FILE_NAME = "Data Set/verificationData.csv"
+TEST_FILE_NAME = "Data Set/testData.csv"
 
 def calculate_sigmoid_output(weights, features):
     sumScore = np.dot(weights, features)
@@ -22,10 +20,9 @@ def calculate_perceptron_output(weights, features):
     return output
 
 def update_perceptron_weights(oldWeights, trainingExample):
-    '''targetValue = 1.0
+    targetValue = 1.0
     if trainingExample[0] == 'p':
-        targetValue = -1.0'''
-    targetValue = trainingExample[1]
+        targetValue = -1.0
     newWeights = map(operator.add, oldWeights, np.dot(targetValue, trainingExample[0]))
     return newWeights
 
@@ -35,7 +32,7 @@ def getExamplesFromFile(fileName):
         trainingExamples = []
         reader = csv.reader(csvfile)
         for row in reader:
-            example = (map(int, row[1:]),float(row[0]))
+            example = (map(int, row[1:]),row[0])
             trainingExamples.append(example)
         return trainingExamples
 
@@ -96,10 +93,9 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
             errorForPoisonousOutput = outputs[1] * (1 - outputs[1]) * (1 - outputs[1])
             outputErrors.append(errorForEdibleOutput)
             outputErrors.append(errorForPoisonousOutput)'''
-        '''target_value = 1.0
+        target_value = 1.0
         if trainingExample[1] == 'p':
-            target_value = -1.0'''
-        target_value = trainingExample[1]
+            target_value = -1.0
         '''errorForEdibleOutput = outputs[0] * (target_value - outputs[0]) * (target_value - outputs[0])
         outputErrors.append(errorForEdibleOutput)'''
         output_error = output * (target_value - output) * (target_value - output)
@@ -122,7 +118,7 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
                 #output_weights = update_perceptron_weights(output_weights, trainingExample)'''
         # Update weights for output node if necessary
         if output != target_value:
-            output_weights = map(operator.add, output_weights, np.dot(float(target_value), hiddenOutputs))
+            output_weights = map(operator.add, output_weights, np.dot(target_value, hiddenOutputs))
 
         # Update weights for hidden nodes
         for j in range(n_hidden):
@@ -137,10 +133,12 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
 def calculate_perceptron_weights(trainingExamples):
     weights = [0.0] * len(trainingExamples[0][0])
     for example in trainingExamples:
-        target_value = float(example[1])
+        target_value = 1.0
+        if example[1] == 'p':
+            target_value = -1.0
         output = calculate_perceptron_output(weights, example[0])
         if output != target_value:
-            weights = update_perceptron_weights(weights, example)
+            weights = np.array(weights) + np.dot(target_value, example[0])
     return weights
 
 
@@ -149,7 +147,9 @@ def perceptron_classify(weights, testExamples):
     num_correct = 0
     for example in testExamples:
         output = calculate_perceptron_output(weights, example[0])
-        targetValue = example[1]
+        targetValue = 1.0
+        if example[1] == 'p':
+            targetValue = -1.0
         if targetValue == output:
             num_correct += 1
         num += 1
@@ -162,14 +162,13 @@ def neural_net_classify(hidden_weights, output_weights, testExamples):
     for example in testExamples:
         hiddenO, output = forwardPropagate(hidden_weights, output_weights, example[0])
         classification = output
-        '''if classification == 1.0:
+        if classification == 1.0:
             if example[1] == 'e':
                 num_correct += 1
         elif classification == -1.0:
             if example[1] == 'p':
-                num_correct += 1'''
-        if classification == example[1]:
-            num += 1
+                num_correct += 1
+        num += 1
     percent_correct = float(num_correct) / num
     return percent_correct
 
@@ -215,14 +214,14 @@ def main():
     perceptron_weights = calculate_perceptron_weights(trainingExamples)
     percent_correct = perceptron_classify(perceptron_weights, verificationExamples)
     print "Perceptron:"
-    print "Validation Set Accuracy: " + str(percent_correct)
+    print "Validation Set: " + str(percent_correct)
     percent_correct = perceptron_classify(perceptron_weights, testExamples)
-    print "Test Set Accuracy: " + str(percent_correct)
+    print "Test Set: " + str(percent_correct)
     print("Two-layer Neural Net:")
-    hidden_weights, output_weights = stochastic_backpropagation(trainingExamples, ALPHA, N_HIDDEN)
+    hidden_weights, output_weights = stochastic_backpropagation(trainingExamples, .05, 14)
     percent_correct = neural_net_classify(hidden_weights, output_weights, verificationExamples)
-    print "Validation Set Accuracy: " + str(percent_correct)
+    print "Validation Set: " + str(percent_correct)
     percent_correct = neural_net_classify(hidden_weights, output_weights, testExamples)
-    print "Test Set Accuracy: " + str(percent_correct)
+    print "Test Set: " + str(percent_correct)
 
 main()
