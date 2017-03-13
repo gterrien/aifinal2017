@@ -137,11 +137,7 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
 def calculate_perceptron_weights(trainingExamples):
     weights = [0.0] * len(trainingExamples[0][0])
     for example in trainingExamples:
-        '''target_value = 1.0
-        if example[1] == 'p':
-            target_value = -1.0'''
         target_value = float(example[1])
-        #print example[0]
         output = calculate_perceptron_output(weights, example[0])
         if output != target_value:
             weights = update_perceptron_weights(weights, example)
@@ -153,9 +149,7 @@ def perceptron_classify(weights, testExamples):
     num_correct = 0
     for example in testExamples:
         output = calculate_perceptron_output(weights, example[0])
-        targetValue = 1.0
-        if example[1] == 'p':
-            targetValue = -1.0
+        targetValue = example[1]
         if targetValue == output:
             num_correct += 1
         num += 1
@@ -221,14 +215,14 @@ def main():
     perceptron_weights = calculate_perceptron_weights(trainingExamples)
     percent_correct = perceptron_classify(perceptron_weights, verificationExamples)
     print "Perceptron:"
-    print "Validation Set: " + str(percent_correct)
+    print "Validation Set Accuracy: " + str(percent_correct)
     percent_correct = perceptron_classify(perceptron_weights, testExamples)
-    print "Test Set: " + str(percent_correct)
+    print "Test Set Accuracy: " + str(percent_correct)
     print("Two-layer Neural Net:")
     hidden_weights, output_weights = stochastic_backpropagation(trainingExamples, ALPHA, N_HIDDEN)
     percent_correct = neural_net_classify(hidden_weights, output_weights, verificationExamples)
-    print "Validation Set: " + str(percent_correct)
+    print "Validation Set Accuracy: " + str(percent_correct)
     percent_correct = neural_net_classify(hidden_weights, output_weights, testExamples)
-    print "Test Set: " + str(percent_correct)
+    print "Test Set Accuracy: " + str(percent_correct)
 
 main()
