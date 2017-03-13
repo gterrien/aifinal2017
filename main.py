@@ -19,6 +19,13 @@ def calculate_perceptron_output(weights, features):
         output = -1.0
     return output
 
+def update_perceptron_weights(oldWeights, trainingExample):
+    targetValue = 1.0
+    if trainingExample[0] == 'p':
+        targetValue = -1.0
+    newWeights = map(operator.add, oldWeights, np.dot(targetValue, trainingExample[0]))
+    return newWeights
+
 
 def getExamplesFromFile(fileName):
     with open(fileName, 'rU') as csvfile:
@@ -105,6 +112,7 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
         for j in range(len(outputs)):
             if outputs[j] != target_value:
                 output_weights[j] = map(operator.add, output_weights[j], np.dot(target_value, hiddenOutputs))
+                #output_weights = update_perceptron_weights(output_weights, trainingExample)
 
         # Update weights for hidden nodes
         for j in range(n_hidden):
@@ -158,56 +166,50 @@ def batch_backpropagation(trainingExamples, alpha, n_hidden):
                     pass
                     #hidden_delta[i] += alpha * ()
 
+def perceptron_classify(trainingExamples, validationExamples, testExamples):
+    print "Perceptron classification:"
+    weights = [0.0] * len(trainingExamples[0][0])
+    for trainingExample in trainingExamples:
+        targetValue = 1.0
+        if trainingExample[1] == 'p':
+            targetValue = -1.0
+        output = calculate_perceptron_output(weights, trainingExample[0])
+        if output != targetValue:
+            weights = np.array(weights) + np.dot(targetValue, trainingExample[0])
+    num = 0
+    num_correct = 0
+    for example in validationExamples:
+        output = calculate_perceptron_output(weights, example[0])
+        targetValue = 1.0
+        if example[1] == 'p':
+            targetValue = -1.0
+        if targetValue == output:
+            num_correct += 1
+        num += 1
+        #print str(output) + " , " + example[1]
+    percent_correct = float(num_correct) / num
+    print "Validation Set: " + str(percent_correct)
+    num = 0
+    num_correct = 0
+    for example in testExamples:
+        output = calculate_perceptron_output(weights, example[0])
+        targetValue = 1.0
+        if example[1] == 'p':
+            targetValue = -1.0
+        if targetValue == output:
+            num_correct += 1
+        num += 1
+        #print str(output) + " , " + example[1]
+    percent_correct = float(num_correct) / num
+    print "Test Set: " + str(percent_correct)
 
-
-def main():
-    trainingExamples = getExamplesFromFile(TRAINING_FILE_NAME)
-    hidden_weights, output_weights = stochastic_backpropagation(trainingExamples, .05, 14)
-    numEdible = 0
-    numPoisonous = 0
-    totalEdibleScore = 0.0
-    totalPoisionousScore = 0.0
-
-    verificationExamples = getExamplesFromFile(VERIFICATION_FILE_NAME)
+def neural_net_classify(alpha, n_hidden, trainingExamples, verificationExamples, testExamples):
+    print "Two-layer neural network classification:"
+    hidden_weights, output_weights = stochastic_backpropagation(trainingExamples, alpha, n_hidden)
     num_correct = 0
     num = 0
     for example in verificationExamples:
         hiddenO, output = forwardPropagate(hidden_weights, output_weights, example[0])
-        if example[1] == 'e':
-            totalEdibleScore += output[0]
-            numEdible += 1
-        elif example[1] == 'p':
-            totalPoisionousScore += output[0]
-            numPoisonous += 1
-    meanEdibleScore = totalEdibleScore / numEdible
-    meanPoisonousScore = totalPoisionousScore / numPoisonous
-    midpoint = (meanEdibleScore + meanPoisonousScore) / 2.0
-    numPoisonous = 0
-    numEdible = 0
-    for example in verificationExamples:
-        hiddenO, output = forwardPropagate(hidden_weights, output_weights, example[0])
-        '''score = output[0]-output[1]
-        if example[1] == 'e':
-            numEdible += 1
-            totalEdibleScore += score
-        elif example[1] == 'p':
-            numPoisonous += 1
-            totalPoisionousScore += score
-
-    print "mean edible score:", totalEdibleScore/numEdible
-    print "mean poisonous score:", totalPoisionousScore/numPoisonous'''
-        print "Output " + str(output)
-        print "Type " + example[1]
-
-        classification = 0
-        '''if output[0] >= midpoint:
-            classification = 1
-        if example[1] == 'e':
-            if classification == 1:
-                num_correct += 1
-        elif example[1] == 'p':
-            if classification == 0:
-                num_correct += 1'''
         classification = output[0]
         if classification == 1.0:
             if example[1] == 'e':
@@ -216,7 +218,33 @@ def main():
             if example[1] == 'p':
                 num_correct += 1
         num += 1
-    print str(float(num_correct) / num)
+    percent_correct =  str(float(num_correct) / num)
+    print "Validation set: " + percent_correct
+
+def main():
+    trainingExamples = getExamplesFromFile(TRAINING_FILE_NAME)
+    verificationExamples = getExamplesFromFile(VERIFICATION_FILE_NAME)
+    testExamples = getExamplesFromFile(TEST_FILE_NAME)
+    #hidden_weights, output_weights = stochastic_backpropagation(trainingExamples, .05, 1)
+
+    perceptron_classify(trainingExamples, verificationExamples, testExamples)
+    neural_net_classify(.05, 14, trainingExamples, verificationExamples, testExamples)
+    '''num_correct = 0
+    num = 0
+    for example in verificationExamples:
+        hiddenO, output = forwardPropagate(hidden_weights, output_weights, example[0])
+        print "Output " + str(output)
+        print "Type " + example[1]
+
+        classification = output[0]
+        if classification == 1.0:
+            if example[1] == 'e':
+                num_correct += 1
+        elif classification == -1.0:
+            if example[1] == 'p':
+                num_correct += 1
+        num += 1
+    print str(float(num_correct) / num)'''
 def tune():
     max_correct = 0.0
     max_alpha = 0.0
