@@ -42,9 +42,6 @@ def forwardPropagate(hiddenWeights, outputWeights, features):
     hiddenOutputs = []
     for hiddenWeight in hiddenWeights:
         hiddenOutputs.append(calculate_sigmoid_output(hiddenWeight,features))
-    #outputs = []
-    '''for outputWeight in outputWeights:
-        outputs.append(calculate_perceptron_output(outputWeight,hiddenOutputs))'''
     output = calculate_perceptron_output(outputWeights, hiddenOutputs)
     return hiddenOutputs, output
 
@@ -59,10 +56,6 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
     :return:
     '''
     # initialize weights for each sigmoid randomly with values between -0.05 and 0.05
-    '''output_weights = []
-    for output_weight in output_weights:
-        for i in range(n_hidden):
-            output_weight.append(0.0)'''
     output_weights = []
     for i in range(n_hidden):
         output_weights.append(0.0)
@@ -81,40 +74,17 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
         features = trainingExample[0]
         hiddenOutputs, output = forwardPropagate(hidden_weights, output_weights, features)
 
-        # outputs[0] = edible, outputs[1] = poisonous
-        # Calculate output errors based on target value
-        #outputErrors = []
-        '''if trainingExample[1] == 'e':
-            errorForEdibleOutput = outputs[0]*(1-outputs[0])*(1-outputs[0])
-            errorForPoisonousOutput = outputs[1]*(1-outputs[1])*(0-outputs[1])
-            outputErrors.append(errorForEdibleOutput)
-            outputErrors.append(errorForPoisonousOutput)
-        elif trainingExample[1] == 'p':
-            errorForEdibleOutput = outputs[0] * (1 - outputs[0]) * (0 - outputs[0])
-            errorForPoisonousOutput = outputs[1] * (1 - outputs[1]) * (1 - outputs[1])
-            outputErrors.append(errorForEdibleOutput)
-            outputErrors.append(errorForPoisonousOutput)'''
         target_value = trainingExample[1]
-        '''errorForEdibleOutput = outputs[0] * (target_value - outputs[0]) * (target_value - outputs[0])
-        outputErrors.append(errorForEdibleOutput)'''
         output_error = output * (target_value - output) * (target_value - output)
 
         #  Calculate error for hidden nodes
         hiddenErrors = []
         for i in range(n_hidden):
             sumOutputError = float(0)
-            '''for j in range(len(outputs)):
-                sumOutputError += output_weights[j][i] * outputErrors[j]
-            hiddenError = hiddenOutputs[i] * (1 - hiddenOutputs[i]) * sumOutputError
-            hiddenErrors.append(hiddenError)'''
             sumOutputError = output_weights[i] * output_error
             hiddenError = hiddenOutputs[i] * (1 - hiddenOutputs[i]) * sumOutputError
             hiddenErrors.append(hiddenError)
 
-        '''for j in range(len(outputs)):
-            if outputs[j] != target_value:
-                output_weights[j] = map(operator.add, output_weights[j], np.dot(target_value, hiddenOutputs))
-                #output_weights = update_perceptron_weights(output_weights, trainingExample)'''
         # Update weights for output node if necessary
         if output != target_value:
             output_weights = map(operator.add, output_weights, np.dot(target_value, hiddenOutputs))
