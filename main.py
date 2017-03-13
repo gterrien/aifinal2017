@@ -53,7 +53,7 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
     output_weights = [[]]
     for output_weight in output_weights:
         for i in range(n_hidden):
-            output_weight.append((random.random()-0.5)/10)
+            output_weight.append(0.0)
     hidden_weights = []
     numInputs = len(trainingExamples[0][0])
     for i in range(n_hidden):
