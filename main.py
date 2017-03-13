@@ -2,6 +2,7 @@ import numpy as np
 import math
 import csv
 import random
+import operator
 
 TRAINING_FILE_NAME = "Data Set/trainingData.csv"
 VERIFICATION_FILE_NAME = "Data Set/verificationData.csv"
@@ -10,6 +11,13 @@ TEST_FILE_NAME = "Data Set/testData.csv"
 def calculate_sigmoid_output(weights, features):
     sumScore = np.dot(weights, features)
     return float(1) / (1 + math.e**sumScore)
+
+def calculate_perceptron_output(weights, features):
+    sumScore = np.dot(weights, features)
+    output = 1.0
+    if sumScore < 0.0:
+        output = -1.0
+    return output
 
 
 def getExamplesFromFile(fileName):
@@ -28,7 +36,7 @@ def forwardPropagate(hiddenWeights, outputWeights, features):
         hiddenOutputs.append(calculate_sigmoid_output(hiddenWeight,features))
     outputs = []
     for outputWeight in outputWeights:
-        outputs.append(calculate_sigmoid_output(outputWeight,hiddenOutputs))
+        outputs.append(calculate_perceptron_output(outputWeight,hiddenOutputs))
     return hiddenOutputs, outputs
 
 
@@ -74,9 +82,9 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
             errorForPoisonousOutput = outputs[1] * (1 - outputs[1]) * (1 - outputs[1])
             outputErrors.append(errorForEdibleOutput)
             outputErrors.append(errorForPoisonousOutput)'''
-        target_value = 0.0
-        if trainingExample[1] == 'e':
-            target_value = 1.0
+        target_value = 1.0
+        if trainingExample[1] == 'p':
+            target_value = -1.0
         errorForEdibleOutput = outputs[0] * (target_value - outputs[0]) * (target_value - outputs[0])
         outputErrors.append(errorForEdibleOutput)
 
@@ -90,10 +98,13 @@ def stochastic_backpropagation(trainingExamples, alpha, n_hidden):
             hiddenErrors.append(hiddenError)
 
         # Update weights for output nodes
-        for j in range(len(output_weights)):
+        '''for j in range(len(output_weights)):
             for i in range(n_hidden):
                 delta = alpha * outputErrors[j] * hiddenOutputs[i]
-                output_weights[j][i] += delta
+                output_weights[j][i] += delta'''
+        for j in range(len(outputs)):
+            if outputs[j] != target_value:
+                output_weights[j] = map(operator.add, output_weights[j], np.dot(target_value, hiddenOutputs))
 
         # Update weights for hidden nodes
         for j in range(n_hidden):
@@ -151,7 +162,7 @@ def batch_backpropagation(trainingExamples, alpha, n_hidden):
 
 def main():
     trainingExamples = getExamplesFromFile(TRAINING_FILE_NAME)
-    hidden_weights, output_weights = stochastic_backpropagation(trainingExamples, 0.1, 14)
+    hidden_weights, output_weights = stochastic_backpropagation(trainingExamples, .05, 14)
     numEdible = 0
     numPoisonous = 0
     totalEdibleScore = 0.0
@@ -189,14 +200,55 @@ def main():
         print "Type " + example[1]
 
         classification = 0
-        if output[0] >= midpoint:
+        '''if output[0] >= midpoint:
             classification = 1
         if example[1] == 'e':
             if classification == 1:
                 num_correct += 1
         elif example[1] == 'p':
             if classification == 0:
+                num_correct += 1'''
+        classification = output[0]
+        if classification == 1.0:
+            if example[1] == 'e':
+                num_correct += 1
+        elif classification == -1.0:
+            if example[1] == 'p':
                 num_correct += 1
         num += 1
     print str(float(num_correct) / num)
+def tune():
+    max_correct = 0.0
+    max_alpha = 0.0
+    max_hidden = 0
+    trainingExamples = getExamplesFromFile(TRAINING_FILE_NAME)
+    verificationExamples = getExamplesFromFile(VERIFICATION_FILE_NAME)
+    resultsFile = open("results4.txt", 'w')
+    for n_hidden in range(25, 30):
+        for alpha in np.arange(.01, .20, .01):
+            hidden_weights, output_weights = stochastic_backpropagation(trainingExamples, alpha, n_hidden)
+            num = 0
+            num_correct = 0
+            for example in verificationExamples:
+                hiddenO, output = forwardPropagate(hidden_weights, output_weights, example[0])
+                classification = output[0]
+                if classification == 1.0:
+                    if example[1] == 'e':
+                        num_correct += 1
+                elif classification == -1.0:
+                    if example[1] == 'p':
+                        num_correct += 1
+                num += 1
+            percent_correct = float(num_correct) / num
+            resultString = "alpha: " + str(alpha) + " n_hidden: " + str(n_hidden) + " percent correct: " + str(percent_correct)
+            resultsFile.write(resultString + '\n')
+            if percent_correct > max_correct:
+                max_alpha = alpha
+                max_hidden = n_hidden
+                max_correct = percent_correct
+            print "Finished alpha: " + str(alpha) + " n_hidden: " + str(n_hidden)
+    maxString = "Best: alpha: " + str(max_alpha) + " n_hidden: " + str(max_hidden) + " percent correct: " + str(max_correct)
+    resultsFile.write(maxString + '\n')
+    resultsFile.close()
 main()
+#main()
